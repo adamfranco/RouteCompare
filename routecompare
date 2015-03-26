@@ -1,0 +1,104 @@
+#!/usr/bin/env python
+
+# routecompare
+#
+# Compare a variety of routes between two points based on track-files.
+# 
+# Author: Adam Franco
+# https://github.com/adamfranco/curvature
+# Copyright 2012 Adam Franco
+# License: GNU General Public License Version 3 or later
+
+import os
+import copy
+import re
+import ast
+import sys
+import argparse
+import gpxpy
+import gpxpy.gpx
+import ConfigParser
+sys.path.insert(1, "{}/lib".format(sys.path[0]))
+import geocalc
+import routecompare
+
+parser = argparse.ArgumentParser(description='Compare a variety of routes between two points based on track-files.')
+parser.add_argument('-v', action='store_true', help='Verbose mode, showing status output')
+parser.add_argument('--route-config', type=argparse.FileType('r'), nargs=1, dest='route_config_file', help='Configuration file.')
+parser.add_argument('gpx_input', type=argparse.FileType('r'), nargs='+', help='The input track file[s]. Should be a GPX XML file.')
+args = parser.parse_args()
+
+# sys.stderr.write("args: {}.\n".format(args))
+
+route_config = ConfigParser.ConfigParser()
+route_config.readfp(args.route_config_file[0])
+
+routes = []
+for section in route_config.sections():
+	route = routecompare.Route()
+	try:
+		route.label = route_config.get(section, 'label')
+	except ConfigParser.NoOptionError:
+		pass
+	
+	try:
+		route.bidirectional = route_config.getboolean(section, 'bidirectional')
+	except ConfigParser.NoOptionError:
+		pass
+	
+	try:
+		route.start_label = route_config.get(section, 'start_label')
+	except ConfigParser.NoOptionError:
+		pass
+	
+	try:
+		route.end_label = route_config.get(section, 'end_label')
+	except ConfigParser.NoOptionError:
+		pass
+	
+	try:
+		route.start_radius = route_config.getint(section, 'start_radius')
+	except ConfigParser.NoOptionError:
+		pass
+	except ValueError as e:
+		sys.stderr.write("Route Config Error in [{}] >> start_radius. {}\n".format(section, e))
+		exit(1)
+	
+	try:
+		route.end_radius = route_config.getint(section, 'end_radius')
+	except ConfigParser.NoOptionError:
+		pass
+	except ValueError as e:
+		sys.stderr.write("Route Config Error in [{}] >> end_radius. {}\n".format(section, e))
+		exit(1)
+	
+	try:
+		route.start_latitude = route_config.getfloat(section, 'start_latitude')
+	except (ValueError, ConfigParser.NoOptionError) as e:
+		sys.stderr.write("Route Config Error in [{}] >> start_latitude. {}\n".format(section, e))
+		exit(1)
+	
+	try:
+		route.start_longitude = route_config.getfloat(section, 'start_longitude')
+	except (ValueError, ConfigParser.NoOptionError) as e:
+		sys.stderr.write("Route Config Error in [{}] >> start_longitude. {}\n".format(section, e))
+		exit(1)
+	
+	try:
+		route.end_latitude = route_config.getfloat(section, 'end_latitude')
+	except (ValueError, ConfigParser.NoOptionError) as e:
+		sys.stderr.write("Route Config Error in [{}] >> end_latitude. {}\n".format(section, e))
+		exit(1)
+		
+	try:
+		route.end_longitude = route_config.getfloat(section, 'end_longitude')
+	except (ValueError, ConfigParser.NoOptionError) as e:
+		sys.stderr.write("Route Config Error in [{}] >> end_longitude. {}\n".format(section, e))
+		exit(1)
+	
+	if args.v:
+		sys.stderr.write("route-config [{}] loaded as {}.\n".format(section, route.label))
+	
+	routes.append(route)
+
+
