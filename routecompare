@@ -21,6 +21,7 @@ import ConfigParser
 sys.path.insert(1, "{}/lib".format(sys.path[0]))
 import geocalc
 import routecompare
+import rc_output
 
 parser = argparse.ArgumentParser(description='Compare a variety of routes between two points based on track-files.')
 parser.add_argument('-v', action='store_true', help='Verbose mode, showing status output')
@@ -120,5 +121,9 @@ for gpx_file in args.gpx_files:
 	
 	for route in routes:
 		route.collect_matches(gpx.tracks)
-		
-	
+
+output = rc_output.Kml()	
+for route in routes:
+	output.add_route(route)
+
+output.write()

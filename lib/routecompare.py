@@ -22,12 +22,19 @@ class Route(object):
 	end_longitude = 1
 	end_radius = 100
 	
+	matches = None
+
+	def __init__(self):
+		self.matches = []
+	
 	def collect_matches(self, tracks):
-		matches = []
 		for track in tracks:
 			match = self.extract_match(track)
 			if match is not None:
-				matches.append(match)
+				self.matches.append(match)
+				self.max = None
+				self.min = None
+		
 	
 	def extract_match(self, track):
 		for segment in track.segments:
@@ -81,6 +88,22 @@ class Route(object):
 				return point_no
 		
 		return None
+	
+	def max_duration(self):
+		if self.max is None:
+			self.max = self.matches[0].duration()
+			for match in self.matches:
+				if match.duration() > self.max:
+					self.max = match.duration()
+		return self.max
+		
+	def min_duration(self):
+		if self.min is None:
+			self.min = self.matches[0].duration()
+			for match in self.matches:
+				if match.duration() < self.min:
+					self.min = match.duration()
+		return self.min
 
 class RouteMatch(object):
 
@@ -93,13 +116,39 @@ class RouteMatch(object):
 		self.segment = segment
 		self.reversed = reversed
 		if self.route.verbose:
-			if self.reversed:
-				reversed = " (reversed)"
-			else:
-				reversed = ""
-			sys.stderr.write("  {}  - found matching track on {} {}\n".format(self.route.label, self.start_time(), reversed))
+			sys.stderr.write("  {}  - found matching track on {} {}\n".format(self.route.label, self.start_time(), self.reversed_string()))
 			
 	def start_time(self):
 		time = self.segment.get_time_bounds().start_time.replace(tzinfo=timezone('UTC'))
 		return time.astimezone(timezone('US/Eastern'))
+	
+	def name(self):
+		return "{} - {}".format(self.route.label, self.start_time())
+	
+	def description(self):
+		return "{}\n{}".format(self.reversed_string(), self.duration())
+		
+	def reversed_string(self):
+		if self.reversed:
+			return "(reversed)"
+		else:
+			return ""
+	
+	def duration(self):
+		bounds = self.segment.get_time_bounds()
+		if bounds.start_time > bounds.end_time:
+			return bounds.start_time - bounds.end_time
+		else:
+			return bounds.end_time - bounds.start_time
+	
+	def normal_duration(self):
+		max = self.route.max_duration()
+		min = self.route.min_duration()
+		return (self.duration() - min).total_seconds() / (max - min).total_seconds()
+	
+	def coords(self):
+		coords = []
+		for point in self.segment.walk(True):
+			coords.append((point.longitude, point.latitude))
+		return coords
 			
