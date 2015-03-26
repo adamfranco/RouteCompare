@@ -1,3 +1,5 @@
+import math
+
 rad_earth_mi = 3960 # Radius of the earth in miles
 rad_earth_m = 6373000 # Radius of the earth in meters
 

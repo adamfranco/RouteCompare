@@ -25,7 +25,7 @@ import routecompare
 parser = argparse.ArgumentParser(description='Compare a variety of routes between two points based on track-files.')
 parser.add_argument('-v', action='store_true', help='Verbose mode, showing status output')
 parser.add_argument('--route-config', type=argparse.FileType('r'), nargs=1, dest='route_config_file', help='Configuration file.')
-parser.add_argument('gpx_input', type=argparse.FileType('r'), nargs='+', help='The input track file[s]. Should be a GPX XML file.')
+parser.add_argument('gpx_files', type=argparse.FileType('r'), nargs='+', help='The input track file[s]. Should be a GPX XML file.')
 args = parser.parse_args()
 
 # sys.stderr.write("args: {}.\n".format(args))
@@ -36,6 +36,8 @@ route_config.readfp(args.route_config_file[0])
 routes = []
 for section in route_config.sections():
 	route = routecompare.Route()
+	route.verbose = args.v
+		
 	try:
 		route.label = route_config.get(section, 'label')
 	except ConfigParser.NoOptionError:
@@ -102,3 +104,21 @@ for section in route_config.sections():
 	routes.append(route)
 
 
+for gpx_file in args.gpx_files:
+	if args.v:
+		sys.stderr.write("Loading GPX data from {}    ...\n".format(gpx_file.name))
+	
+	gpx = gpxpy.parse(gpx_file)
+	
+	# Join all segments in each track so we only have to look at points
+	for track in gpx.tracks:
+		while len(track.segments) > 1:
+			track.join(0)
+	
+	if args.v:
+		sys.stderr.write("Collecting matches    ...\n".format(gpx_file.name))
+	
+	for route in routes:
+		route.collect_matches(gpx.tracks)
+		
+	
