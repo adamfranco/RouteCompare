@@ -3,8 +3,29 @@ import sys
 import math
 from math import trunc
 from polycircles import polycircles
+from collections import namedtuple
 
-class Kml(object):
+class Output(object):
+
+	def format_timedelta(self, delta):
+		hours, remainder = divmod(delta.total_seconds(), 3600)
+		minutes, seconds = divmod(remainder, 60)
+		if hours >= 1:
+			return "{:d}h:{:d}m:{:d}s".format(trunc(hours), trunc(minutes), trunc(seconds))
+		if minutes >= 1:
+			return "{:d}m:{:d}s".format(trunc(minutes), trunc(seconds))
+		return "{:d}s".format(trunc(seconds))
+    
+	def green_to_red_rgb(self, fraction):
+		RgbColor = namedtuple('RgbColor', 'red green blue')		
+		if fraction < 0.5:
+			# each level in a gradient from green to yellow(00FF00 - 00FFFF)
+			return RgbColor('{:02X}'.format(int(round(255 * fraction * 2))), 'FF', '00')
+		else:
+			# each level in a gradient from yellow to red (00FFFF - 0000FF)
+			return RgbColor('FF', '{:02X}'.format(int(round(255 - ((fraction - 0.5) * 2 * 255)))), '00')
+
+class Kml(Output):
 	
 	kml = None
 	
@@ -42,24 +63,10 @@ class Kml(object):
 			line.style.linestyle.width=3
 			line.style.linestyle.color = self.line_color(match.normal_duration())
     
-	def format_timedelta(self, delta):
-		hours, remainder = divmod(delta.total_seconds(), 3600)
-		minutes, seconds = divmod(remainder, 60)
-		if hours >= 1:
-			return "{:d}h:{:d}m:{:d}s".format(trunc(hours), trunc(minutes), trunc(seconds))
-		if minutes >= 1:
-			return "{:d}m:{:d}s".format(trunc(minutes), trunc(seconds))
-		return "{:d}s".format(trunc(seconds))
-    
 	def line_color(self, fraction):
 # 		sys.stderr.write("{} - {} - {}\n".format(fraction, int(round(255 * fraction * 2)), int(round(255 - ((fraction - 0.5) * 2 * 255)))))
-
-		if fraction < 0.5:
-			# each level in a gradient from green to yellow(00FF00 - 00FFFF)
-			return '8000FF{:02X}'.format(int(round(255 * fraction * 2)))
-		else:
-			# each level in a gradient from yellow to red (00FFFF - 0000FF)
-			return '8000{:02X}FF'.format(int(round(255 - ((fraction - 0.5) * 2 * 255))))
+		color = self.green_to_red_rgb(fraction)
+		return '80{}{}{}'.format(color.blue, color.green, color.red);
         
 	def write(self):
 		print self.kml.kml().encode('utf-8')
