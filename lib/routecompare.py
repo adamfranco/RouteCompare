@@ -1,6 +1,7 @@
 import sys
 import copy
 import geocalc
+import datetime
 
 from pytz import timezone
 import pytz
@@ -104,7 +105,22 @@ class Route(object):
 				if match.duration() < self.min:
 					self.min = match.duration()
 		return self.min
-
+	
+	def average_duration(self):
+		sum = 0
+		num = 0
+		for duration in self.durations_as_seconds():
+			sum += duration
+			num += 1
+		return datetime.timedelta(seconds=(sum / num))
+	
+	def durations_as_seconds(self):
+		for match in self.matches:
+			yield match.duration().total_seconds()
+	
+	def delta(self):
+		return self.max_duration() - self.min_duration()
+		
 class RouteMatch(object):
 
 	segment = None

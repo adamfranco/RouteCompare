@@ -1,6 +1,7 @@
 import simplekml
 import sys
 import math
+from math import trunc
 from polycircles import polycircles
 
 class Kml(object):
@@ -16,7 +17,8 @@ class Kml(object):
 		
 	
 	def add_route(self, route):
-		fol = self.kml.newfolder(name=route.label)
+		folder_name=u"{} (avg: {}, \u0394: {})".format(route.label, self.format_timedelta(route.average_duration()), self.format_timedelta(route.delta()))
+		fol = self.kml.newfolder(name=folder_name)
 		polycircle = polycircles.Polycircle(latitude=route.start_latitude,
 											longitude=route.start_longitude,
 											radius=route.start_radius,
@@ -40,6 +42,15 @@ class Kml(object):
 			line.style.linestyle.width=3
 			line.style.linestyle.color = self.line_color(match.normal_duration())
     
+	def format_timedelta(self, delta):
+		hours, remainder = divmod(delta.total_seconds(), 3600)
+		minutes, seconds = divmod(remainder, 60)
+		if hours >= 1:
+			return "{:d}h:{:d}m:{:d}s".format(trunc(hours), trunc(minutes), trunc(seconds))
+		if minutes >= 1:
+			return "{:d}m:{:d}s".format(trunc(minutes), trunc(seconds))
+		return "{:d}s".format(trunc(seconds))
+    
 	def line_color(self, fraction):
 # 		sys.stderr.write("{} - {} - {}\n".format(fraction, int(round(255 * fraction * 2)), int(round(255 - ((fraction - 0.5) * 2 * 255)))))
 
@@ -51,4 +62,4 @@ class Kml(object):
 			return '8000{:02X}FF'.format(int(round(255 - ((fraction - 0.5) * 2 * 255))))
         
 	def write(self):
-		print self.kml.kml()
+		print self.kml.kml().encode('utf-8')
