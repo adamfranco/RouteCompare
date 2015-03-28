@@ -7,6 +7,12 @@ from collections import namedtuple
 
 class Output(object):
 
+	def route_folder_name(self, route):
+		return u"{} (avg: {}, \u0394: {})".format(
+			route.label,
+			self.format_timedelta(route.average_duration()),
+			self.format_timedelta(route.delta()))
+
 	def format_timedelta(self, delta):
 		hours, remainder = divmod(delta.total_seconds(), 3600)
 		minutes, seconds = divmod(remainder, 60)
@@ -25,7 +31,7 @@ class Output(object):
 			# each level in a gradient from yellow to red (00FFFF - 0000FF)
 			return RgbColor('FF', '{:02X}'.format(int(round(255 - ((fraction - 0.5) * 2 * 255)))), '00')
 
-class Kml(Output):
+class KmlOutput(Output):
 	
 	kml = None
 	
@@ -38,8 +44,7 @@ class Kml(Output):
 		
 	
 	def add_route(self, route):
-		folder_name=u"{} (avg: {}, \u0394: {})".format(route.label, self.format_timedelta(route.average_duration()), self.format_timedelta(route.delta()))
-		fol = self.kml.newfolder(name=folder_name)
+		fol = self.kml.newfolder(name=self.route_folder_name(route))
 		polycircle = polycircles.Polycircle(latitude=route.start_latitude,
 											longitude=route.start_longitude,
 											radius=route.start_radius,

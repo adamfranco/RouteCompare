@@ -122,7 +122,7 @@ for gpx_file in args.gpx_files:
 	for route in routes:
 		route.collect_matches(gpx.tracks)
 
-output = rc_output.Kml()	
+output = rc_output.KmlOutput()	
 for route in routes:
 	output.add_route(route)
 
