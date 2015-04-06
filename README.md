@@ -12,6 +12,8 @@ and pulls out all of the segments that pass near configurable start and end poin
 It then takes these segments and analyzes them to show you the travel-time of each,
 the average travel-time between the two points, and the range of travel-times.
 
+![Example output comparing several tracks](https://raw.githubusercontent.com/adamfranco/RouteCompare/master/examples/winooski-charlotte.png)
+
 Example usage: crossing the city in rush hour
 ---------------------------------------------
 
