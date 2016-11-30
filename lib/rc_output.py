@@ -1,4 +1,5 @@
 import simplekml
+import geojson
 import sys
 import math
 from math import trunc
@@ -75,3 +76,45 @@ class KmlOutput(Output):
         
 	def write(self):
 		print self.kml.kml().encode('utf-8')
+
+class GeoJsonOutput(Output):
+	
+	collection = None
+	
+	def __init__(self):
+		self.collection = geojson.FeatureCollection([])
+	
+	def add_route(self, route):
+		fol = geojson.FeatureCollection([], properties={"name":self.route_folder_name(route)})
+		self.collection.features.append(fol)
+		polycircle = polycircles.Polycircle(latitude=route.start_latitude,
+											longitude=route.start_longitude,
+											radius=route.start_radius,
+											number_of_vertices=36)
+# 		polygon = fol.newpolygon(name=route.start_label, outerboundaryis=polycircle.to_kml())
+# 		polygon.style = self.circle_style
+# 		
+# 		polycircle = polycircles.Polycircle(latitude=route.end_latitude,
+# 											longitude=route.end_longitude,
+# 											radius=route.end_radius,
+# 											number_of_vertices=36)
+# 		polygon = fol.newpolygon(name=route.end_label, outerboundaryis=polycircle.to_kml())
+# 		polygon.style = self.circle_style
+		
+		route.matches.sort(key=lambda x: x.duration())
+		
+		for match in route.matches:
+			feature = geojson.Feature(	id=match.name(),
+										geometry=geojson.LineString(match.coords()),
+										properties={"name":match.name(), "description":match.description()})
+			fol.features.append(feature)
+# 			line.style.linestyle.width=3
+# 			line.style.linestyle.color = self.line_color(match.normal_duration())
+    
+	def line_color(self, fraction):
+# 		sys.stderr.write("{} - {} - {}\n".format(fraction, int(round(255 * fraction * 2)), int(round(255 - ((fraction - 0.5) * 2 * 255)))))
+		color = self.green_to_red_rgb(fraction)
+		return '80{}{}{}'.format(color.blue, color.green, color.red);
+        
+	def write(self):
+		print geojson.dumps(self.collection)

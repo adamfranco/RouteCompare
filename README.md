@@ -17,18 +17,18 @@ the average travel-time between the two points, and the range of travel-times.
 Example usage: crossing the city in rush hour
 ---------------------------------------------
 
-I often find myself driving across our local city, Burlington, during rush-hour 
+I often find myself driving across our local city, Burlington, during rush-hour
 traffic. There are numerous ways in which one can cross the city each of which
 encounters traffic at different parts of their routes, making direct comparison
-difficult. Is it faster to stay on less-busy, but low-speed city streets or 
+difficult. Is it faster to stay on less-busy, but low-speed city streets or
 take the longer highway that dumps me onto a crowded arterial road?
 
 After driving these routes for months, I downloaded the track-logs from my Garmin
 Nuvi as a GPX file onto my computer to run the file through RouteCompare.
 
-First, I need to pick two points that define the segment I'm interested in. I 
-could just pick my normal start and end points, but in this case I'm most 
-interested in portion of my route that diverges around different parts of the 
+First, I need to pick two points that define the segment I'm interested in. I
+could just pick my normal start and end points, but in this case I'm most
+interested in portion of my route that diverges around different parts of the
 city and I didn't want slow traffic further down the road skewing the results.
 I picked one point in Winooski with a 200m radius from which all of my routes
 diverge. For my second point, I picked an intersection in Charlotte where my
@@ -40,7 +40,7 @@ After I have my points configured, I can run my track-logs through RouteCompare
 to extract just the matching segments:
 
     ./routecompare -v --route-config=examples/winooski-charlotte.ini examples/ExampleTracks.gpx > examples/winooski-charlotte.kml
-    
+
 The KML output from RouteCompare I then open in Google Earth. Looking at it, I
 see the following information:
 
@@ -51,6 +51,13 @@ see the following information:
   the fastest route as well as the second slowest (on a second trip). I also see
   that staying off the highway on back roads for too long just eats up several
   extra minutes beyond what I saved from avoiding traffic.
+
+GeoJSON output
+--------------
+Instead of KML output, you can output GeoJSON files by using the `--format geojson` option.
+
+    ./routecompare -v --format geojson --route-config=examples/winooski-charlotte.ini examples/ExampleTracks.gpx > examples/winooski-charlotte.geojson
+
 
 License
 =======

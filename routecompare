@@ -25,7 +25,8 @@ import rc_output
 
 parser = argparse.ArgumentParser(description='Compare a variety of routes between two points based on track-files.')
 parser.add_argument('-v', action='store_true', help='Verbose mode, showing status output')
-parser.add_argument('--route-config', type=argparse.FileType('r'), nargs=1, dest='route_config_file', help='Configuration file.')
+parser.add_argument('--format', default="kml", choices=['kml','geojson'], help='Output format. Default is kml.')
+parser.add_argument('--route-config', type=argparse.FileType('r'), nargs=1, required=True, dest='route_config_file', help='Configuration file.')
 parser.add_argument('gpx_files', type=argparse.FileType('r'), nargs='+', help='The input track file[s]. Should be a GPX XML file.')
 args = parser.parse_args()
 
@@ -122,7 +123,11 @@ for gpx_file in args.gpx_files:
 	for route in routes:
 		route.collect_matches(gpx.tracks)
 
-output = rc_output.KmlOutput()	
+if args.format == "geojson":
+	output = rc_output.GeoJsonOutput()
+else:
+	output = rc_output.KmlOutput()
+
 for route in routes:
 	output.add_route(route)
 
